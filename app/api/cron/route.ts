@@ -5,7 +5,10 @@ import { generateEmailBody, sendEmail } from "@/lib/nodemailer/index";
 import { scrapeAmazonProduct } from "@/lib/scraper/index";
 import { getAveragePrice, getEmailNotifType, getHighestPrice, getLowestPrice } from "@/lib/utils";
 import { NextResponse } from "@/node_modules/next/server";
-import { User } from "@/types/index";
+
+export const maxDuration = 300;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET() {
     try {
@@ -17,7 +20,7 @@ export async function GET() {
 
         //1. Scrape latest product details & update DB
         const updateProducts = await Promise.all(
-            products.map(async (currentProduct: { url: any; priceHistory: any; _id?: string | undefined; currency?: string; image?: string; title?: string; currentPrice?: number; originalPrice?: number; highestPrice?: number; lowestPrice?: number; averagePrice?: number; discountRate?: number; description?: string; category?: string; reviewsCount?: number; stars?: number; isOutOfStock?: Boolean; users?: User[] | undefined; }) => {
+            products.map(async (currentProduct) => {
                 //Scrape product
                 const scrapedProduct = await scrapeAmazonProduct(currentProduct.url);
 
@@ -37,7 +40,7 @@ export async function GET() {
                 };
                 // Update Products in DB
                 const updatedProduct = await Product.findOneAndUpdate(
-                    { url: scrapedProduct.url },
+                    { url: product.url },
                     product
                 );
 
